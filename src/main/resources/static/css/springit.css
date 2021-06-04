@@ -1,5 +1,4 @@
 
-
 .bg-spring {
     background-color: #2E2A28!important;
     border-top: 7px solid #6db33f;
@@ -16,7 +15,6 @@ button.nav-link {
     border:none;
     cursor: pointer;
 }
-
 
 body {
     background: #ffffff;
@@ -110,7 +108,7 @@ a.share {
     padding:0px;
 }
 .comment .permalink {
-    
+
 }
 .comment .like {
     padding-left:10px;
