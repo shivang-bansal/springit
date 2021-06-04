@@ -2,12 +2,19 @@ package com.shiv.springit.bootstrap;
 
 
 import com.shiv.springit.model.Link;
+import com.shiv.springit.model.Role;
+import com.shiv.springit.model.User;
 import com.shiv.springit.repository.CommentRepository;
 import com.shiv.springit.repository.LinkRepository;
+import com.shiv.springit.repository.RoleRepository;
+import com.shiv.springit.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Component
@@ -15,14 +22,23 @@ public class DatabaseLoader implements CommandLineRunner {
 
     private LinkRepository linkRepository;
     private CommentRepository commentRepository;
+    private UserRepository userRepository;
+    private RoleRepository roleRepository;
 
-    public DatabaseLoader(LinkRepository linkRepository, CommentRepository commentRepository) {
+    private Map<String, User> users = new HashMap<>();
+
+    public DatabaseLoader(LinkRepository linkRepository, CommentRepository commentRepository, UserRepository userRepository, RoleRepository roleRepository) {
         this.linkRepository = linkRepository;
         this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
     public void run(String... args) {
+
+        // add users and roles
+        addUsersAndRoles();
 
         Map<String,String> links = new HashMap<>();
         links.put("Securing Spring Boot APIs and SPAs with OAuth 2.0","https://auth0.com/blog/securing-spring-boot-apis-and-spas-with-oauth2/?utm_source=reddit&utm_medium=sc&utm_campaign=springboot_spa_securing");
@@ -45,6 +61,27 @@ public class DatabaseLoader implements CommandLineRunner {
 
         long linkCount = linkRepository.count();
         System.out.println("Number of links in the database: " + linkCount );
+    }
+    private void addUsersAndRoles() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String secret = "{bcrypt}" + encoder.encode("password");
+
+        Role userRole = new Role("ROLE_USER");
+        roleRepository.save(userRole);
+        Role adminRole = new Role("ROLE_ADMIN");
+        roleRepository.save(adminRole);
+
+        User user = new User("user@gmail.com",secret,true);
+        user.addRole(userRole);
+        userRepository.save(user);
+
+        User admin = new User("admin@gmail.com",secret,true);
+        admin.addRole(adminRole);
+        userRepository.save(admin);
+
+        User master = new User("super@gmail.com",secret,true);
+        master.addRoles(new HashSet<>(Arrays.asList(userRole,adminRole)));
+        userRepository.save(master);
     }
 
 }
